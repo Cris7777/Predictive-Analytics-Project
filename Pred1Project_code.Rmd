@@ -1,0 +1,97 @@
+---
+title: "Pred1Project_code"
+author: "Rachel Rosenberg"
+date: "11/12/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load data
+
+```{r}
+setwd("~/Predictive_1/Pred1Project")
+book <- read.csv("book.csv", sep = ',', stringsAsFactors = F)
+booktest <- read.csv("booktest.csv", sep = ',', stringsAsFactors = F)
+booktrain <- read.csv("booktrain.csv", sep = ',', stringsAsFactors = F)
+ordersall <- read.csv("ordersall.csv", sep = ',', stringsAsFactors = F)
+```
+
+## Manipulate data
+
+```{r}
+## Join tables
+# booktrain, ordersall, book - on customerID
+cust_db <- merge(booktrain, book, by.x = "id", by.y = "id")
+cust_db <- merge(cust_db, ordersall, by.x = "id", by.y = "id")
+head(cust_db)
+
+## Weight recent purchases
+# Use a loop - build function to weight
+# Have to use ordersall 
+weight_recent <- function(cust_db){
+        for(i in 1:nrow(cust_db)){
+                date <- as.Date(cust_db$orddate[i], format = "%d-%b-%y")
+                if (date > as.Date("2013-01-01")){
+                        cust_db$price[i] <- 1.6 * cust_db$price[i]
+                }
+                else if (date < as.Date("2013-01-01") & date > as.Date("2012-01-01")){
+                        cust_db$price[i] <- 1.4 * cust_db$price[i]
+                }
+                else if (date < as.Date("2012-01-01") & date > as.Date("2011-01-01")){
+                        cust_db$price[i] <- 1.2 * cust_db$price[i]
+                }
+                else if (date < as.Date("2011-01-01") & date > as.Date("2010-01-01")){
+                        cust_db$price[i] <- 1.1 * cust_db$price[i]
+                }
+        }
+}
+
+weight_recent(cust_db)
+## 
+```
+
+## Make a binary column - did the customer purchase a book in response to the promo?
+
+```{r}
+#cust_db_binom <- cust_db # copy cust_db to a new db for manipulation
+
+last_three_months <- function(cust_db_binom){
+        for(i in 1:nrow(cust_db_binom)){
+                if (cust_db_binom$logtargamt.x[i] > 0){
+                        cust_db_binom$logtargamt.x[i] <- 1
+                }
+        }
+        return(cust_db_binom)
+}
+
+cust_db_binom <- last_three_months(cust_db_binom)
+
+# get rid of extraneous columns in dataframe
+keeps <- c("orddate", "ordnum", "category", "qty","price", "tof", "amount","frequency","recency","logtargamt.x","id")
+cust_db_binom <- cust_db_binom[keeps]
+```
+
+## Fit logarithmic model - did customer respond to promo?
+
+```{r}
+fit <- glm(logtargamt.x ~ ., data = cust_db_binom, family = binomial)
+summary(fit)
+```
+
+## Remove customers who did not respond to promo
+
+```{r}
+cust_db_
+```
+
+## Fit multiple linear regression model
+
+```{r}
+
+```
+
+
+
