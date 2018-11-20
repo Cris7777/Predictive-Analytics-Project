@@ -124,9 +124,13 @@ cust_db_binom <- cust_db_binom[keeps]
 ## Fit logarithmic model without merging the orders table- did customer respond to promo?
 
 ```{r}
+library(nnet)
 book <- book[book$amount < 1000,] #filter out huge purchasers 
 
 cust_db_binom <- merge(booktrain, book, by.x = "id", by.y = "id") #merge training data onto book dataset
+
+#add variable for amount weighted by most recent purchase
+cust_db_binom$wgtamount <- cust_db_binom$amount / (cust_db_binom$recency + 1)
 
 #convert the logtargamt to binomial
 for(i in 1:nrow(cust_db_binom)){
@@ -135,9 +139,12 @@ for(i in 1:nrow(cust_db_binom)){
                 }
         }
 
-fit <- glm(logtargamt.x ~ recency , data = cust_db_binom, family = binomial)
+fit <- glm(logtargamt.x ~ recency + wgtamount, data = cust_db_binom, family = binomial)
+
+
 summary(fit)
 plot(fit)
+plot(fit$residuals)
 
 cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response") #convert odds to prediction
 
