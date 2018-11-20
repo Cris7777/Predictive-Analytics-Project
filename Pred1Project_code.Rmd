@@ -34,22 +34,23 @@ head(cust_db)
 weight_recent <- function(cust_db){
         for(i in 1:nrow(cust_db)){
                 date <- as.Date(cust_db$orddate[i], format = "%d-%b-%y")
-                if (date > as.Date("2013-01-01")){
-                        cust_db$price[i] <- 1.6 * cust_db$price[i]
+                if (date >= as.Date("2013-01-01")){
+                        cust_db$wgtprice[i] <- 1.6 * cust_db$price[i]
                 }
                 else if (date < as.Date("2013-01-01") & date > as.Date("2012-01-01")){
-                        cust_db$price[i] <- 1.4 * cust_db$price[i]
+                        cust_db$wgtprice[i] <- 1.4 * cust_db$price[i]
                 }
                 else if (date < as.Date("2012-01-01") & date > as.Date("2011-01-01")){
-                        cust_db$price[i] <- 1.2 * cust_db$price[i]
+                        cust_db$wgtprice[i] <- 1.2 * cust_db$price[i]
                 }
                 else if (date < as.Date("2011-01-01") & date > as.Date("2010-01-01")){
-                        cust_db$price[i] <- 1.1 * cust_db$price[i]
+                        cust_db$wgtprice[i] <- 1.1 * cust_db$price[i]
                 }
         }
+  return(cust_db)
 }
 
-weight_recent(cust_db)
+cust_db <- weight_recent(cust_db)
 ## 
 ```
 
