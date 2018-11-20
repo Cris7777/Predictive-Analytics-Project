@@ -57,7 +57,7 @@ cust_db <- weight_recent(cust_db)
 ## Make a binary column - did the customer purchase a book in response to the promo?
 
 ```{r}
-#cust_db_binom <- cust_db # copy cust_db to a new db for manipulation
+cust_db_binom <- cust_db # copy cust_db to a new db for manipulation
 
 last_three_months <- function(cust_db_binom){
         for(i in 1:nrow(cust_db_binom)){
@@ -78,8 +78,12 @@ cust_db_binom <- cust_db_binom[keeps]
 ## Fit logarithmic model - did customer respond to promo?
 
 ```{r}
-fit <- glm(logtargamt.x ~ ., data = cust_db_binom, family = binomial)
+
+fit <- glm(logtargamt.x ~ recency  + factor(category) + amount + frequency, data = cust_db_binom, family = binomial)
 summary(fit)
+
+cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response")
+
 ```
 
 ## Remove customers who did not respond to promo
