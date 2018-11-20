@@ -124,31 +124,28 @@ cust_db_binom <- cust_db_binom[keeps]
 ## Fit logarithmic model without merging the orders table- did customer respond to promo?
 
 ```{r}
-cust_db_binom <- merge(booktrain, book, by.x = "id", by.y = "id")
+book <- book[book$amount < 1000,] #filter out huge purchasers 
 
+cust_db_binom <- merge(booktrain, book, by.x = "id", by.y = "id") #merge training data onto book dataset
+
+#convert the logtargamt to binomial
 for(i in 1:nrow(cust_db_binom)){
                 if (cust_db_binom$logtargamt.x[i] > 0){
                         cust_db_binom$logtargamt.x[i] <- 1
                 }
         }
 
-fit <- glm(logtargamt.x ~ recency, data = cust_db_binom, family = binomial)
+fit <- glm(logtargamt.x ~ recency , data = cust_db_binom, family = binomial)
 summary(fit)
 plot(fit)
 
-plot(cust_db_binom$recency, cust_db_binom$logtargamt.x)
+cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response") #convert odds to prediction
 
-
-
-cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response")
-
-tab = table(cust_db_binom$logtargamt.x, cust_db_binom$prediction > .04)
+tab = table(cust_db_binom$logtargamt.x, cust_db_binom$prediction > .04) #create confusion matrix
 tab
 
-mean(cust_db_binom[cust_db_binom$logtargamt.x == 1,]$prediction)
+mean(cust_db_binom[cust_db_binom$logtargamt.x == 1,]$prediction) #mean predictions given actual binomial
 mean(cust_db_binom[cust_db_binom$logtargamt.x == 0,]$prediction)
-
-summary(cust_db_binom$recency)
 
 ```
 
