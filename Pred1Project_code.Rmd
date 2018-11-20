@@ -81,6 +81,7 @@ cust_db_binom <- cust_db_binom[keeps]
 
 fit <- glm(logtargamt.x ~ recency  + factor(category) + amount + frequency, data = cust_db_binom, family = binomial)
 summary(fit)
+plot(fit)
 
 cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response")
 
@@ -99,4 +100,55 @@ cust_db_
 ```
 
 
+```{r}
+cust_db_binom <- cust_db # copy cust_db to a new db for manipulation
+
+last_three_months <- function(cust_db_binom){
+        for(i in 1:nrow(cust_db_binom)){
+                if (cust_db_binom$logtargamt.x[i] > 0){
+                        cust_db_binom$logtargamt.x[i] <- 1
+                }
+        }
+        return(cust_db_binom)
+}
+
+cust_db_binom <- last_three_months(cust_db_binom)
+
+# get rid of extraneous columns in dataframe
+keeps <- c("orddate", "ordnum", "category", "qty","price", "tof", "amount","frequency","recency","logtargamt.x","id")
+cust_db_binom <- cust_db_binom[keeps]
+```
+
+
+
+## Fit logarithmic model without merging the orders table- did customer respond to promo?
+
+```{r}
+cust_db_binom <- merge(booktrain, book, by.x = "id", by.y = "id")
+
+for(i in 1:nrow(cust_db_binom)){
+                if (cust_db_binom$logtargamt.x[i] > 0){
+                        cust_db_binom$logtargamt.x[i] <- 1
+                }
+        }
+
+fit <- glm(logtargamt.x ~ recency, data = cust_db_binom, family = binomial)
+summary(fit)
+plot(fit)
+
+plot(cust_db_binom$recency, cust_db_binom$logtargamt.x)
+
+
+
+cust_db_binom$prediction <- predict(fit, cust_db_binom, type = "response")
+
+tab = table(cust_db_binom$logtargamt.x, cust_db_binom$prediction > .04)
+tab
+
+mean(cust_db_binom[cust_db_binom$logtargamt.x == 1,]$prediction)
+mean(cust_db_binom[cust_db_binom$logtargamt.x == 0,]$prediction)
+
+summary(cust_db_binom$recency)
+
+```
 
